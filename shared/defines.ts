@@ -1,7 +1,7 @@
 export const TICK_RATE = 60;
 export const FIXED_DELTA = 1 / TICK_RATE;
 
-export class Player {
+export class PlayerState {
     x: number;
     y: number;
     vx: number = 0;
@@ -25,7 +25,7 @@ export class PlayerInput {
     mouseY: number = 0;
 }
 
-export function updatePlayer(player: Player, input: PlayerInput): void {
+export function updatePlayer(player: PlayerState, input: PlayerInput): void {
     player.x += ((input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0)) * player.moveSpeed;
     player.y += ((input.moveDown ? 1 : 0) - (input.moveUp ? 1 : 0)) * player.moveSpeed;
 }
