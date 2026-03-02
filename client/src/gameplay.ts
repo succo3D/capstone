@@ -1,12 +1,11 @@
-import {network} from "./network"
-import * as shared from "@shared/defines"
-
-
+import { network } from "./network"
+import { PlayerState, PlayerInput, updatePlayer } from "@shared/defines"
+import { PlayerObject } from "./player";
 
 export default class SceneGameplay extends Phaser.Scene {
 
-    player: shared.Player = new shared.Player(400, 300);
-    sprite!: Phaser.GameObjects.Sprite;
+    player!: PlayerObject;
+    group!: Phaser.GameObjects.Group;
 
     preload() {
         this.load.image('bg', 'assets/bg.png');
@@ -16,15 +15,27 @@ export default class SceneGameplay extends Phaser.Scene {
     create() {
         network.connect();
         const socket = network.getSocket();
+
         this.add.image(400, 300, 'bg');
-        this.sprite = this.add.sprite(this.player.x, this.player.y, 'player');
+
+        this.player = new PlayerObject(this, 400, 300, 'player');
+
+        this.group = this.add.group({runChildUpdate: false});
+        this.group.add(this.player, true);
     }
 
-    update() {
+    update(time: number, delta: number) {
+
+        updatePlayer(this.player.pState, this.getPlayerInput());
+
+        this.player.update(time, delta);
+    }
+
+    getPlayerInput() {
 
         var cursorKeys = this.input.keyboard?.createCursorKeys();
 
-        let playerInput = new shared.PlayerInput;
+        let playerInput = new PlayerInput;
 
         if (cursorKeys) {
             playerInput.moveUp = cursorKeys.up.isDown;
@@ -33,7 +44,8 @@ export default class SceneGameplay extends Phaser.Scene {
             playerInput.moveRight = cursorKeys.right.isDown;
         }
 
-        shared.updatePlayer(this.player, playerInput);
-        this.sprite.setPosition(this.player.x, this.player.y);
+        return playerInput;
+
     }
 }
+
