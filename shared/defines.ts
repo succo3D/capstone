@@ -7,7 +7,7 @@ export class PlayerState {
     vx: number = 0;
     vy: number = 0;
     facingAngle: number = 0;
-    moveSpeed = 2;
+    moveSpeed = 3;
 
     constructor(x: number, y: number) {
         this.x = x;

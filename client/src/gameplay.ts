@@ -1,10 +1,14 @@
-import { network } from "./network"
-import { PlayerState, PlayerInput, updatePlayer } from "@shared/defines"
+import { network } from "./network";
+import { PlayerState, PlayerInput, updatePlayer } from "@shared/defines";
 import { PlayerObject } from "./player";
+import type { Socket } from "socket.io-client";
+
+let socket: Socket;
 
 export default class SceneGameplay extends Phaser.Scene {
 
     player!: PlayerObject;
+    players: Map<string, PlayerObject> = new Map();
     group!: Phaser.GameObjects.Group;
 
     preload() {
@@ -13,22 +17,64 @@ export default class SceneGameplay extends Phaser.Scene {
     }
 
     create() {
+        this.group = this.add.group({runChildUpdate: false});
+
         network.connect();
-        const socket = network.getSocket();
+        socket = network.getSocket();
+
+        socket.on("snapshot", (states: Record<string, PlayerState>) => {
+            for (let id of Object.keys(states)) {
+                let player = this.players.get(id);
+                let state = states[id];
+                if(!state)
+                    continue;
+                if(!player) {
+                    let newPlayer = new PlayerObject(this, state, 'player');
+                    this.players.set(id, newPlayer);
+                    this.group.add(newPlayer, true);
+                }
+                else {
+                    player.pState = state;
+                    player.update();
+                }
+            }
+        });
+
+        socket.on("newPlayer", (state, id) => {
+            let newPlayer = new PlayerObject(this, state, 'player');
+            this.players.set(id, newPlayer);
+            this.group.add(newPlayer, true);
+            this.player = newPlayer;
+        });
+
+        socket.on("playerDisconnected", (id) => {
+            console.log("guy left");
+            let player = this.players.get(id);
+            if (player) {
+                this.group.remove(player);
+                this.players.delete(id);
+                player.destroy();
+            }
+        });
+
+        socket.emit("newPlayer");
 
         this.add.image(400, 300, 'bg');
 
-        this.player = new PlayerObject(this, 400, 300, 'player');
-
-        this.group = this.add.group({runChildUpdate: false});
-        this.group.add(this.player, true);
     }
 
     update(time: number, delta: number) {
 
-        updatePlayer(this.player.pState, this.getPlayerInput());
+        //send to server
+        
 
-        this.player.update(time, delta);
+        //local 
+        if (this.player) {
+            let input = this.getPlayerInput();
+            socket.emit("playerInput", input);
+            updatePlayer(this.player.pState, input);
+            this.player.update();
+        }
     }
 
     getPlayerInput() {

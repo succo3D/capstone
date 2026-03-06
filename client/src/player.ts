@@ -5,12 +5,12 @@ export class PlayerObject extends Phaser.GameObjects.Sprite {
 
     pState: PlayerState;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string | Phaser.Textures.Texture, frame?: string | number) {
-        super(scene, x, y, texture, frame);
-        this.pState = new PlayerState(x, y);
+    constructor(scene: Phaser.Scene, playerState: PlayerState, texture: string | Phaser.Textures.Texture, frame?: string | number) {
+        super(scene, playerState.x, playerState.y, texture, frame);
+        this.pState = playerState;
     }
 
-    update(time: number, delta: number) {
+    update() {
         //TODO INTERPOLATE TO STATE POSITION?
         this.setPosition(this.pState.x, this.pState.y);
     }
