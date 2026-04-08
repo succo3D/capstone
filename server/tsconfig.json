@@ -8,5 +8,5 @@
     "include": [
     "src",
     "../shared/*"
-  ]
+, "../shared/actor/objActor.ts", "../shared/actor/objPlayer.ts"  ]
 }

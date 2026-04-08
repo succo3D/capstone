@@ -1,11 +1,11 @@
 import Phaser from "phaser";
-import { PlayerState } from "@shared/defines"
+import type { objPlayer } from "@shared/actor/objPlayer";
 
 export class PlayerObject extends Phaser.GameObjects.Sprite {
 
-    pState: PlayerState;
+    pState: objPlayer;
 
-    constructor(scene: Phaser.Scene, playerState: PlayerState, texture: string | Phaser.Textures.Texture, frame?: string | number) {
+    constructor(scene: Phaser.Scene, playerState: objPlayer, texture: string | Phaser.Textures.Texture, frame?: string | number) {
         super(scene, playerState.x, playerState.y, texture, frame);
         this.pState = playerState;
     }

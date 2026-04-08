@@ -1,9 +1,15 @@
 import { network } from "./network";
-import { PlayerState, PlayerInput, updatePlayer } from "@shared/defines";
 import { PlayerObject } from "./player";
 import type { Socket } from "socket.io-client";
+import type { WorldSnapshot } from "@shared/world";
+import { objPlayer, PlayerInput } from "@shared/actor/objPlayer";
 
 let socket: Socket;
+
+function makePlayerState(data: any): objPlayer {
+    var state = new objPlayer(data.x, data.y);
+    return state;
+} 
 
 export default class SceneGameplay extends Phaser.Scene {
 
@@ -22,10 +28,11 @@ export default class SceneGameplay extends Phaser.Scene {
         network.connect();
         socket = network.getSocket();
 
-        socket.on("snapshot", (states: Record<string, PlayerState>) => {
+        socket.on("snapshot", (snapshot: WorldSnapshot) => {
+            let states = snapshot.players;
             for (let id of Object.keys(states)) {
                 let player = this.players.get(id);
-                let state = states[id];
+                let state = makePlayerState(states[id]);
                 if(!state)
                     continue;
                 if(!player) {
@@ -65,14 +72,14 @@ export default class SceneGameplay extends Phaser.Scene {
 
     update(time: number, delta: number) {
 
-        //send to server
-        
-
-        //local 
+        //local update player, send input
         if (this.player) {
+            
             let input = this.getPlayerInput();
             socket.emit("playerInput", input);
-            updatePlayer(this.player.pState, input);
+
+            this.player.pState.handleInput(input);
+            this.player.pState.update(delta / 1000);
             this.player.update();
         }
     }

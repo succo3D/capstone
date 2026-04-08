@@ -1,38 +1,31 @@
 import { createServer } from "http";
 import express from "express";
 import { Server } from "socket.io";
-import { PlayerInput, PlayerState, updatePlayer } from "@shared/defines";
+import { FIXED_DELTA } from "@shared/defines";
+import { GameWorld } from "@shared/world";
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-type QueuedInput = {
-  id: string
-  input: PlayerInput
-}
-
-const playerInputs: QueuedInput[] = [];
-
-let players: Record<string, PlayerState> = {};
+const game = new GameWorld();
 
 io.on("connection", (socket) => {
 
   socket.on("newPlayer", () => {
     console.log("New guy joined");
-    let state = new PlayerState(200, 300);
-    players[socket.id] = state;
-    socket.emit("newPlayer", state, socket.id);
-    io.emit("snapshot", players);
+    let player = game.addPlayer(socket.id);
+    socket.emit("newPlayer", player, socket.id);
+    io.emit("snapshot", game.getSnapshot());
   });
 
   socket.on("playerInput", (playerInput) => {
-    playerInputs.push({id: socket.id, input: playerInput})
+    game.queueInput(socket.id, playerInput);
   });
 
   socket.on("disconnect", () => {
     console.log("A guy left");
-    delete players[socket.id];
+    game.removePlayer(socket.id);
     io.emit("playerDisconnected", socket.id);
   });
   
@@ -40,13 +33,9 @@ io.on("connection", (socket) => {
 
   setInterval( () => {
 
-    while (playerInputs.length > 0) {
-      const {id, input} = playerInputs.shift();
-      const player = players[id];
-      if (player) updatePlayer(player, input);
-    }
+    game.update(FIXED_DELTA);
 
-    io.emit("snapshot", players);
+    io.emit("snapshot", game.getSnapshot());
 
   }, 1000 / 60);
 
