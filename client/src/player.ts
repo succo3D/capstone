@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { objPlayer } from "@shared/actor/objPlayer";
+import { objPlayer } from "@shared/actor/objPlayer";
 
 export class PlayerObject extends Phaser.GameObjects.Sprite {
 

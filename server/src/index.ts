@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
 
   setInterval( () => {
 
-    game.update(FIXED_DELTA);
+    game.update(1 / 60);
 
     io.emit("snapshot", game.getSnapshot());
 
