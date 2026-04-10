@@ -19,11 +19,14 @@ export default class SceneGameplay extends Phaser.Scene {
     players: Map<string, sprPlayer> = new Map();
     projectiles: Map<string, sprProjectile> = new Map();
     group!: Phaser.GameObjects.Group;
+    debug: boolean = false;
 
     preload() {
         this.load.image('bg', 'assets/bg.png');
         this.load.image('player', 'assets/player.png');
         this.load.image('bullet', 'assets/bullet.png');
+        this.load.image("weapon", "assets/weapon.png");
+        this.load.image("tile", "assets/tile.png");
     }
 
     create() {
@@ -41,6 +44,10 @@ export default class SceneGameplay extends Phaser.Scene {
         socket = network.getSocket();
 
         socket.on("snapshot", (snapshot: WorldSnapshot) => {
+
+            if (!this.tilemap)
+                this.updateTilemap(snapshot.tilemap);
+
             let players = snapshot.players;
             for (let id of Object.keys(players)) {
                 let player = this.players.get(id);
@@ -82,8 +89,6 @@ export default class SceneGameplay extends Phaser.Scene {
 
 
 
-            this.tilemap = snapshot.tilemap;
-
         });
 
         socket.on("newPlayer", (state, id) => {
@@ -109,7 +114,17 @@ export default class SceneGameplay extends Phaser.Scene {
 
     }
 
-    updateTilemap() {
+    updateTilemap(tilemap: any) {
+
+        this.tilemap = tilemap;
+
+        for (let i = 0; i < tilemap.length; i++) {
+            for (let j = 0; j < tilemap[0].length; j++) {
+                if (tilemap[i][j])
+                    this.add.sprite(64 * j + 32, 64 * i + 32, "tile");
+            }
+        }
+
 
     }
 
