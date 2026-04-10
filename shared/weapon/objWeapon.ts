@@ -8,6 +8,10 @@ export class objWeapon {
     ownerId = "";
     cooldown: number = 0;
 
+    constructor(ownerId: string) {
+        this.ownerId = ownerId;
+    }
+
     fire(direction: number, world: GameWorld) {
         world.projectiles[(objProjectile.idCount++).toString()] = new objProjectile(this.x, this.y, direction, this.ownerId);
         this.cooldown = 10;

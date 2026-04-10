@@ -16,15 +16,15 @@ export class GameWorld {
     tilemap: number[][] = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+        [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ];
 
@@ -43,14 +43,30 @@ export class GameWorld {
         }
 
         for (const [id, player] of Object.entries(this.players)) {
-            player.update(delta, this);
+            if (!player.update(delta, this)) {
+                this.removePlayer(id);
+                this.addPlayer(id);
+            }
         }
 
         for (let id of Object.keys(this.projectiles)) {
-            if (this.projectiles[id].update(delta, this) == false) {
+            if (!this.projectiles[id].update(delta, this)) {
                 delete this.projectiles[id];
+                break;
             }
+
+            for (let pid of Object.keys(this.players)) {
+
+                if (this.projectiles[id].collidingActor(this.players[pid])) {
+                    this.projectiles[id].hitPlayer(this.players[pid]);
+                    delete this.projectiles[id];
+                    break;
+                }
+
+            }
+
         }
+
     }
 
     getSnapshot(): WorldSnapshot {
@@ -58,7 +74,8 @@ export class GameWorld {
     }
 
     addPlayer(id: string): objPlayer {
-        let player = new objPlayer(200, 300);
+        let player = new objPlayer(1024/2, 768/2);
+        player.id = id;
         this.players[id] = player;
         return player;
     }

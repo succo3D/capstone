@@ -5,6 +5,8 @@ export class objActor {
     y: number;
     vx: number = 0;
     vy: number = 0;
+    boxW: number = 0;
+    boxH: number = 0;
 
     constructor(x: number, y: number) {
         this.x = x;
@@ -26,19 +28,55 @@ export class objActor {
     }
 
     moveAndCollide(delta: number, tilemap: any) {
-        // TODO
-        this.move(delta);
-        return false;
+
+        if (!tilemap)
+            return false;
+
+        if (this.collidingTilemap(tilemap))
+            return true;
+
+        let collided = false;
+        
+        this.x += this.vx * delta;
+        while(this.collidingTilemap(tilemap)) {
+            this.x -= Math.sign(this.vx);
+            collided = true;
+        }
+
+        this.y += this.vy * delta;
+        while(this.collidingTilemap(tilemap)) {
+            this.y -= Math.sign(this.vy);
+            collided = true;
+        }
+
+        return collided;
     }
 
-    collidingTilemap(tilemap: any): number {
-        // TODO
-        return 0;
+    collidingTilemap(tilemap: any): boolean {
+        let tx = this.x / 64;
+        let ty = this.y / 64;
+        let tw = this.boxW / 64 / 2;
+        let th = this.boxH / 64 / 2;
+
+        if (tilemap[Math.floor(ty-th)][Math.floor(tx-tw)])
+            return true;
+        if (tilemap[Math.floor(ty+th)][Math.floor(tx-tw)])
+            return true;
+        if (tilemap[Math.floor(ty-th)][Math.floor(tx+tw)])
+            return true;
+        if (tilemap[Math.floor(ty+th)][Math.floor(tx+tw)])
+            return true;
+
+        return false;
     }
 
     collidingActor(other: objActor): boolean {
-        // TODO
-        return false;
+        return (
+            this.x-this.boxW/2 < other.x+other.boxW/2 &&
+            this.x+this.boxW/2 > other.x-other.boxW/2 &&
+            this.y-this.boxH/2 < other.y+other.boxH/2 &&
+            this.y+this.boxH/2 > other.y-other.boxH/2
+        );
     }
 
 }
