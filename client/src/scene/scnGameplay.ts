@@ -1,8 +1,8 @@
 import { network } from "../network";
 import { sprPlayer } from "../sprite/sprPlayer";
 import type { Socket } from "socket.io-client";
-import { GameWorld, type WorldSnapshot } from "@shared/world";
-import { objPlayer, PlayerInput } from "@shared/actor/objPlayer";
+import { type WorldSnapshot } from "@shared/world";
+import { PlayerInput } from "@shared/actor/objPlayer";
 import { sprProjectile } from "../sprite/sprProjectile";
 
 let socket: Socket;
@@ -128,7 +128,7 @@ export default class SceneGameplay extends Phaser.Scene {
 
     }
 
-    update(time: number, delta: number) {
+    update(_time: number, delta: number) {
 
         //local update player, send input
         if (this.player) {
