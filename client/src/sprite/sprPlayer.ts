@@ -8,6 +8,8 @@ export class sprPlayer extends Phaser.GameObjects.Sprite {
     weapon: Phaser.GameObjects.Sprite;
     box: Phaser.GameObjects.Rectangle;
     healthBar: Phaser.GameObjects.Graphics;
+    score: Phaser.GameObjects.Text;
+    legs: Phaser.GameObjects.Sprite;
 
     constructor(scene: Phaser.Scene, obj: any) {
         super(scene, obj.x, obj.y, "player");
@@ -18,6 +20,12 @@ export class sprPlayer extends Phaser.GameObjects.Sprite {
         this.box = this.scene.add.rectangle(this.x, this.y, this.obj.boxW, this.obj.boxH, 0xff0000, 0.5);
         this.weapon.setDepth(this.depth + 1);
         this.box.setDepth(this.depth + 2);
+
+        this.legs = this.scene.add.sprite(this.x, this.y + 48, "legs").setOrigin(0.5, 1).setDepth(this.depth);
+        this.legs.play({key: "walk", repeat: -1});
+        this.legs.visible = false;
+
+        this.score = this.scene.add.text(this.obj.x, this.obj.y - 64, this.obj.score.toString()).setOrigin(0.5);
         if (!this.scene.debug) {
             this.box.setVisible(false);
         }
@@ -65,6 +73,11 @@ export class sprPlayer extends Phaser.GameObjects.Sprite {
         this.box.setPosition(this.x, this.y);
 
         this.updateHealthBar();
+
+        this.score.setPosition(this.obj.x, this.obj.y - 64);
+        this.score.setText(this.obj.score.toString());
+
+        this.legs.setPosition(this.x, this.y + 48);
 
         /*
         this.line.setPosition(this.x, this.y);

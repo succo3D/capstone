@@ -1,11 +1,14 @@
 import Phaser from "phaser";
 import SceneMainMenu from "./scene/scnMainMenu";
+import SceneGameplay from "./scene/scnGameplay";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 1024,
   height: 768,
-  scene: [SceneMainMenu],
+  scene: [new SceneMainMenu("mainmenu"),
+          new SceneGameplay("gameplay")
+  ],
   physics: {
     default: 'arcade',
     arcade: {
