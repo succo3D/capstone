@@ -28,6 +28,7 @@ export class objPlayer extends objActor {
     justFired: boolean = false;
     boxW: number = 32;
     boxH: number = 32;
+    score: number = 0;
 
     update(delta: number, world: GameWorld) {
         this.moveAndCollide(delta, world.tilemap);

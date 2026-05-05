@@ -20,6 +20,8 @@ export default class SceneGameplay extends Phaser.Scene {
     projectiles: Map<string, sprProjectile> = new Map();
     group!: Phaser.GameObjects.Group;
     debug: boolean = false;
+    matchOver: boolean = false;
+    timer!: Phaser.GameObjects.Text;
 
     preload() {
         this.load.image('bg', 'assets/bg.png');
@@ -27,6 +29,7 @@ export default class SceneGameplay extends Phaser.Scene {
         this.load.image('bullet', 'assets/bullet.png');
         this.load.image("weapon", "assets/weapon.png");
         this.load.image("tile", "assets/tile.png");
+        this.load.aseprite("legs", "assets/legs.png", "assets/legs.json");
     }
 
     create() {
@@ -38,7 +41,14 @@ export default class SceneGameplay extends Phaser.Scene {
             keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         }
 
+        this.anims.createFromAseprite("legs");
+
         this.group = this.add.group({runChildUpdate: false});
+
+        this.timer = this.add.text(1024/2, 28, "hello", {
+            color: "#000000",
+            fontSize: "48px"
+            }).setOrigin(0.5);
 
         network.connect();
         socket = network.getSocket();
@@ -47,6 +57,8 @@ export default class SceneGameplay extends Phaser.Scene {
 
             if (!this.tilemap)
                 this.updateTilemap(snapshot.tilemap);
+
+            this.timer.setText(""+(Math.ceil(snapshot.timeLeft)).toString()).setDepth(2);
 
             let players = snapshot.players;
             for (let id of Object.keys(players)) {
@@ -87,8 +99,6 @@ export default class SceneGameplay extends Phaser.Scene {
 
             }
 
-
-
         });
 
         socket.on("newPlayer", (state, id) => {
@@ -106,6 +116,24 @@ export default class SceneGameplay extends Phaser.Scene {
                 this.players.delete(id);
                 player.destroy();
             }
+        });
+
+        socket.on("matchOver", (matchResults: string) => {
+            this.add.rectangle(1024/2, 768/2, 1024, 768, 0x000000, 0.5).setDepth(3);
+
+            let text = this.add.text(1024/2, 768/2, "").setDepth(4).setOrigin(0.5);
+
+            if (matchResults == this.player.obj.id) {
+                text.setText("You Win!");
+            }
+            else if (matchResults == "TIE!")
+                text.setText("It's a Tie!");
+            else
+                text.setText("You Lose!");
+
+            this.matchOver = true;
+
+            this.player.depth = 3.5;
         });
 
         socket.emit("newPlayer");
@@ -131,7 +159,7 @@ export default class SceneGameplay extends Phaser.Scene {
     update(_time: number, delta: number) {
 
         //local update player, send input
-        if (this.player) {
+        if (!this.matchOver && this.player) {
             
             let input = this.getPlayerInput();
             socket.emit("playerInput", input);
